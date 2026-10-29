@@ -1,0 +1,35 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev-postgres-password}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-dev-app-password}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      retries: 20
+  migrate:
+    build: .
+    command: sh -c 'alembic upgrade head && python -m scripts.seed'
+    environment:
+      ADMIN_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-dev-postgres-password}@db:5432/postgres
+    depends_on:
+      db:
+        condition: service_healthy
+  api:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      DATABASE_URL: postgresql://rag_app:${APP_DB_PASSWORD:-dev-app-password}@db:5432/postgres
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-this-secret-before-deploying}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+volumes:
+  pgdata:

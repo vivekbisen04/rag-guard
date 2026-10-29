@@ -1,0 +1,11 @@
+name: leakage
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start service
+        run: docker compose up --build -d
+      - name: Run leakage suite
+        run: docker compose exec -T api pytest -m leakage -q
