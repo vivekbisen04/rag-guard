@@ -22,6 +22,14 @@ Open <http://localhost:8000>. Demo login: `admin@alpha.example` / `demo-password
 
 The frontend is React with Vite. Compose builds it into the API image and serves it at port 8000. For frontend development, run `cd frontend && npm ci && npm run dev` while the API is running; Vite proxies API requests to port 8000.
 
+To sign in as an existing demo employee, use `employee@alpha.example` / `demo-password` (or replace `alpha` with `beta` or `gamma`). To create another employee in an existing tenant, run:
+
+```sh
+docker compose run --rm migrate python -m scripts.create_user --tenant alpha --email new.employee@alpha.example
+```
+
+The command prompts for a password and creates an `employee` by default. The administrator database connection is used only by this one-off command; the API continues to use the restricted app role.
+
 ```sh
 curl -s localhost:8000/login -H 'content-type: application/json' \
   -d '{"email":"employee@alpha.example","password":"demo-password"}'
