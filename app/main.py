@@ -8,7 +8,7 @@ from typing import Literal
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from .auth import identity, login
 from .db import connection
 from .ingest import extract_text, store_document
@@ -28,6 +28,13 @@ class LoginRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     query: str = Field(min_length=1, max_length=4000)
+
+    @field_validator("query")
+    @classmethod
+    def nonempty_query(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Question cannot be blank")
+        return value.strip()
 
 @app.get("/")
 def index():

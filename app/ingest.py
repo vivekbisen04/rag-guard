@@ -20,7 +20,7 @@ def extract_text(filename: str, data: bytes) -> str:
         raise HTTPException(400, "No extractable text")
     return text
 
-def chunks(text: str, size=650, overlap=100):
+def chunks(text: str, size=250, overlap=40):
     words = text.split()
     for start in range(0, len(words), size - overlap):
         part = words[start:start + size]
